@@ -146,10 +146,25 @@ function syncSounds() {
     });
 }
 
+function getNumSounds() {
+    return getAccessToken(config).then(token => {
+        config.accessToken = token;
+        return getMe();
+    }).then(me => {
+        return getFavorites(me.id);
+    }).then(favorites => {
+        const tracks = favorites.filter(favorite => {
+            return favorite.kind === 'track';
+        });
+        return tracks.length;
+    });
+}
+
 module.exports = cfg => {
     config = cfg;
     db = new Datastore({ filename: config.datastorePath, autoload: true });
     return {
-        sync: syncSounds
+        sync: syncSounds,
+        getNumSounds: getNumSounds
     };
 };
