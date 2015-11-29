@@ -1,14 +1,13 @@
 'use strict';
 
-const config = require('./config.json');
 const request = require('request');
 const fs = require('fs');
 const Datastore = require('nedb')
 const SoundCloud = require('soundcloud-nodejs-api-wrapper');
 
-const db = new Datastore({ filename: config.datastorePath, autoload: true });
-
 const endpoint = 'https://api.soundcloud.com';
+
+let config, db;
 
 function getAccessToken() {
     const soundCloud = new SoundCloud({
@@ -118,28 +117,36 @@ function promiseFilter(array, fn) {
     });
 }
 
-getAccessToken().then(token => {
-    config.accessToken = token;
-    return getMe();
-}).then(me => {
-    return getFavorites(me.id);
-}).then(favorites => {
-    const tracks = favorites.filter(favorite => {
-        return favorite.kind === 'track';
-    });
-    return promiseFilter(tracks, track => {
-        return checkForExisting(track).then(exists => {
-            return !exists;
+function syncSounds() {
+    return getAccessToken(config).then(token => {
+        config.accessToken = token;
+        return getMe();
+    }).then(me => {
+        return getFavorites(me.id);
+    }).then(favorites => {
+        const tracks = favorites.filter(favorite => {
+            return favorite.kind === 'track';
         });
-    });
-}).then(newTracks => {
-    return Promise.all(newTracks.map(track => {
-        return downloadTrack(track).then(() => {
-            return addToDatabase(track);
-        }).then(() => {
-            console.log('[FINISHED]', track.title);
+        return promiseFilter(tracks, track => {
+            return checkForExisting(track).then(exists => {
+                return !exists;
+            });
         });
-    }));
-}).catch(error => {
-    console.log(error);
-});
+    }).then(newTracks => {
+        return Promise.all(newTracks.map(track => {
+            return downloadTrack(track).then(() => {
+                return addToDatabase(track);
+            }).then(() => {
+                console.log('[FINISHED]', track.title);
+            });
+        }));
+    });
+}
+
+module.exports = cfg => {
+    config = cfg;
+    db = new Datastore({ filename: config.datastorePath, autoload: true });
+    return {
+        sync: syncSounds
+    };
+};

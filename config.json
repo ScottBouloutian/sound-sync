@@ -1,8 +1,0 @@
-{
-    "clientID": "APP_CLIENT_ID",
-    "clientSecret": "APP_CLIENT_SECRET",
-    "username": "SOUNDCLOUD_USERNAME",
-    "password": "SOUNDCLOUD_PASSWORD",
-    "datastorePath": "DATASTORE_FILE",
-    "soundsFolder": "SYNC_FOLDER"
-}
