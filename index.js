@@ -4,6 +4,7 @@ const request = require('request');
 const fs = require('fs');
 const Datastore = require('nedb')
 const SoundCloud = require('soundcloud-nodejs-api-wrapper');
+const Q = require('q');
 
 const endpoint = 'https://api.soundcloud.com';
 
@@ -17,7 +18,7 @@ function getAccessToken() {
       password: config.password
     });
     const client = soundCloud.client();
-    return new Promise((resolve, reject) => {
+    return Q.Promise((resolve, reject) => {
         client.exchange_token((error, result, arg, body) => {
             if(error) {
                 reject(error);
@@ -35,7 +36,7 @@ function getMe() {
             oauth_token: config.accessToken
         }
     };
-    return new Promise((resolve, reject) => {
+    return Q.Promise((resolve, reject) => {
         request.get(options, (error, response, body) => {
             if(error) {
                 reject(error);
@@ -53,7 +54,7 @@ function getFavorites(id) {
             client_id: config.clientID
         }
     };
-    return new Promise((resolve, reject) => {
+    return Q.Promise((resolve, reject) => {
         request.get(options, (error, response, body) => {
             if(error) {
                 reject(error);
@@ -73,7 +74,7 @@ function downloadTrack(track) {
         }
     };
     const path = config.soundsFolder + '/' + track.id + '.mp3';
-    return new Promise((resolve, reject) => {
+    return Q.Promise((resolve, reject) => {
         const writeStream = fs.createWriteStream(path);
         const trackRequest = request.get(options).pipe(writeStream).on('close', () => {
             resolve();
@@ -84,7 +85,7 @@ function downloadTrack(track) {
 }
 
 function checkForExisting(track) {
-    return new Promise((resolve, reject) => {
+    return Q.Promise((resolve, reject) => {
         db.find({ id: track.id }, (error, docs) => {
             if(error) {
                 reject(error);
@@ -96,7 +97,7 @@ function checkForExisting(track) {
 }
 
 function addToDatabase(track) {
-    return new Promise((resolve, reject) => {
+    return Q.Promise((resolve, reject) => {
         db.insert(track, (error, docs) => {
             if(error) {
                 reject(error);
@@ -108,8 +109,8 @@ function addToDatabase(track) {
 }
 
 function promiseFilter(array, fn) {
-    return Promise.all(array.map(entry => {
-        return Promise.resolve(fn(entry));
+    return Q.all(array.map(entry => {
+        return Q(fn(entry));
     })).then(results => {
         return array.filter((entry, index) => {
             return results[index];
@@ -133,13 +134,15 @@ function syncSounds() {
             });
         });
     }).then(newTracks => {
-        return Promise.all(newTracks.map(track => {
-            return downloadTrack(track).then(() => {
-                return addToDatabase(track);
-            }).then(() => {
-                console.log('[FINISHED]', track.title);
-            });
-        }));
+        return Q.Promise((resolve, reject, notify) => {
+            Q.all(newTracks.map(track => {
+                return downloadTrack(track).then(() => {
+                    return addToDatabase(track);
+                }).then(() => {
+                    notify(track);
+                });
+            })).then(resolve).catch(reject);
+        });
     });
 }
 

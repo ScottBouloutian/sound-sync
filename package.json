@@ -15,7 +15,8 @@
   "dependencies": {
       "request": "^2.67.0",
       "nedb": "^1.5.0",
-      "soundcloud-nodejs-api-wrapper": "^0.2.3"
+      "soundcloud-nodejs-api-wrapper": "^0.2.3",
+      "q": "^1.4.1"
   },
   "peerDependencies": {
       "jshint": "2.9.1-rc1"
