@@ -160,11 +160,35 @@ function getNumSounds() {
     });
 }
 
+function getSyncedSounds() {
+    return Q.Promise(function(resolve, reject) {
+        db.find({}, function(error, docs) {
+            if(error) {
+                reject(error);
+            } else {
+                resolve(docs);
+            }
+        });
+    }).then(function(docs) {
+        return docs.map(function(doc) {
+            const thumb = doc.artwork_url;
+            return {
+                title: doc.title,
+                description: doc.description,
+                uri: doc.permalink_url,
+                thumbnail: (thumb) ? thumb.replace('-large', '-t500x500') : null,
+                stream: doc.stream_url
+            };
+        });
+    });
+}
+
 module.exports = cfg => {
     config = cfg;
     db = new Datastore({ filename: config.datastorePath, autoload: true });
     return {
         sync: syncSounds,
-        getNumSounds: getNumSounds
+        getNumSounds: getNumSounds,
+        getSyncedSounds: getSyncedSounds
     };
 };
