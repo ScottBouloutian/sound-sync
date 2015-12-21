@@ -173,6 +173,7 @@ function getSyncedSounds() {
         return docs.map(function(doc) {
             const thumb = doc.artwork_url;
             return {
+                id: doc.id,
                 title: doc.title,
                 description: doc.description,
                 uri: doc.permalink_url,
