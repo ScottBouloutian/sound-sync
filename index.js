@@ -163,7 +163,6 @@ function getNumSounds() {
 function getSyncedSounds(ids) {
     return Q.Promise(function(resolve, reject) {
         const query = (!ids || ids.length === 0) ? {} : { id: { $in: ids } };
-        console.log(query);
         db.find(query, function(error, docs) {
             if(error) {
                 reject(error);
