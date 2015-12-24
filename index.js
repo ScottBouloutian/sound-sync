@@ -160,9 +160,11 @@ function getNumSounds() {
     });
 }
 
-function getSyncedSounds() {
+function getSyncedSounds(ids) {
     return Q.Promise(function(resolve, reject) {
-        db.find({}, function(error, docs) {
+        const query = (!ids || ids.length === 0) ? {} : { id: { $in: ids } };
+        console.log(query);
+        db.find(query, function(error, docs) {
             if(error) {
                 reject(error);
             } else {
