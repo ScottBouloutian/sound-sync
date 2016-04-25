@@ -2,13 +2,15 @@
 
 const request = require('request');
 const fs = require('fs');
-const Datastore = require('nedb')
 const SoundCloud = require('soundcloud-nodejs-api-wrapper');
 const Q = require('q');
+const nodeId3 = require('node-id3');
+const s3 = require('s3');
+const path = require('path');
 
 const endpoint = 'https://api.soundcloud.com';
 
-let config, db;
+let config, s3Client;
 
 function getAccessToken() {
     const soundCloud = new SoundCloud({
@@ -65,7 +67,7 @@ function getFavorites(id) {
     });
 }
 
-function downloadTrack(track) {
+function downloadTrack(track, file) {
     const streamURL = track.stream_url;
     const options = {
         url: streamURL,
@@ -73,52 +75,95 @@ function downloadTrack(track) {
             client_id: config.clientID
         }
     };
-    const path = config.soundsFolder + '/' + track.id + '.mp3';
     return Q.Promise((resolve, reject) => {
-        const writeStream = fs.createWriteStream(path);
-        const trackRequest = request.get(options).pipe(writeStream).on('close', () => {
-            resolve();
+        const writeStream = fs.createWriteStream(file);
+        request.get(options).pipe(writeStream).on('close', () => {
+            resolve(file);
         }).on('error', error => {
             reject(error);
         });
     });
 }
 
-function checkForExisting(track) {
+function downloadArtwork(track, file) {
+    const thumb = track.artwork_url;
+    const options = {
+        url: (thumb) ? thumb.replace('-large', '-t500x500') : null,
+    };
     return Q.Promise((resolve, reject) => {
-        db.find({ id: track.id }, (error, docs) => {
-            if(error) {
-                reject(error);
-            } else {
-                resolve((docs.length !==0));
-            }
+        const writeStream = fs.createWriteStream(file);
+        request.get(options).pipe(writeStream).on('close', () => {
+            resolve(file);
+        }).on('error', error => {
+            reject(error);
         });
     });
 }
 
-function addToDatabase(track) {
+function writeMetadata(track, file, image) {
+    const tags = {
+        artist: track.user.username,
+        title: track.title,
+        genre: track.genre,
+        year: String(track.release_year || new Date(track.created_at).getFullYear()),
+        image: image
+    };
+    nodeId3.write(tags, file);
+}
+
+function saveTrack(track, file) {
+    var params = {
+        localFile: file,
+        s3Params: {
+            Bucket: config.aws.bucket,
+            Key: 'soundcloud/' + track.title + '.mp3'
+        }
+    };
+    var uploader = s3Client.uploadFile(params);
     return Q.Promise((resolve, reject) => {
-        db.insert(track, (error, docs) => {
-            if(error) {
-                reject(error);
-            } else {
-                resolve(docs);
+        uploader.on('error', function(error) {
+            reject(error);
+        });
+        uploader.on('end', function() {
+            resolve();
+        });
+    });
+}
+
+function filterExistingTracks(tracks) {
+    return Q.Promise((resolve, reject) => {
+        const params = {
+            s3Params: {
+                Bucket: config.aws.bucket,
+                Prefix: 'soundcloud/'
             }
+        };
+        const lister = s3Client.listObjects(params);
+        let s3Data = [];
+        lister.on('data', data => {
+            s3Data = s3Data.concat(data.Contents);
+        });
+        lister.once('error', reject);
+        lister.once('end', () => {
+            resolve(tracks.filter(track => {
+                return s3Data.every(data => {
+                    return (data.Key.indexOf(track.title) === -1);
+                });
+            }));
         });
     });
 }
 
-function promiseFilter(array, fn) {
-    return Q.all(array.map(entry => {
-        return Q(fn(entry));
-    })).then(results => {
-        return array.filter((entry, index) => {
-            return results[index];
-        });
-    });
-}
+function syncSounds(n) {
+    // Create a tmp directory
+    try {
+      fs.mkdirSync(path.join(__dirname, 'tmp'));
+    } catch(e) {
+      if ( e.code !== 'EEXIST' ) {
+          throw e;
+      }
+    }
 
-function syncSounds() {
     return getAccessToken(config).then(token => {
         config.accessToken = token;
         return getMe();
@@ -127,18 +172,24 @@ function syncSounds() {
     }).then(favorites => {
         const tracks = favorites.filter(favorite => {
             return favorite.kind === 'track';
-        });
-        return promiseFilter(tracks, track => {
-            return checkForExisting(track).then(exists => {
-                return !exists;
-            });
-        });
+        }).slice(0, n || favorites.length);
+        return filterExistingTracks(tracks);
     }).then(newTracks => {
         return Q.Promise((resolve, reject, notify) => {
             Q.all(newTracks.map(track => {
-                return downloadTrack(track).then(() => {
-                    return addToDatabase(track);
+                const mediaFile = path.join(__dirname, 'tmp', track.id + '.mp3');
+                const imageFile = path.join(__dirname, 'tmp', track.id + '.jpg');
+
+                return Q.all([
+                    downloadArtwork(track, imageFile),
+                    downloadTrack(track, mediaFile)
+                ]).then(() => {
+                    return writeMetadata(track, mediaFile, imageFile);
                 }).then(() => {
+                    fs.unlinkSync(imageFile);
+                    return saveTrack(track, mediaFile);
+                }).then(() => {
+                    fs.unlinkSync(mediaFile);
                     notify(track);
                 });
             })).then(resolve).catch(reject);
@@ -160,37 +211,16 @@ function getNumSounds() {
     });
 }
 
-function getSyncedSounds(ids) {
-    return Q.Promise(function(resolve, reject) {
-        const query = (!ids || ids.length === 0) ? {} : { id: { $in: ids } };
-        db.find(query, function(error, docs) {
-            if(error) {
-                reject(error);
-            } else {
-                resolve(docs);
-            }
-        });
-    }).then(function(docs) {
-        return docs.map(function(doc) {
-            const thumb = doc.artwork_url;
-            return {
-                id: doc.id,
-                title: doc.title,
-                description: doc.description,
-                uri: doc.permalink_url,
-                thumbnail: (thumb) ? thumb.replace('-large', '-t500x500') : null,
-                stream: doc.stream_url
-            };
-        });
-    });
-}
-
 module.exports = cfg => {
     config = cfg;
-    db = new Datastore({ filename: config.datastorePath, autoload: true });
+    s3Client = s3.createClient({
+        s3Options: {
+            accessKeyId: config.aws.accessKeyId,
+            secretAccessKey: config.aws.secretAccessKey
+        }
+    });
     return {
         sync: syncSounds,
-        getNumSounds: getNumSounds,
-        getSyncedSounds: getSyncedSounds
+        getNumSounds: getNumSounds
     };
 };
