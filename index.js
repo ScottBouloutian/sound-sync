@@ -192,7 +192,10 @@ function syncSounds(n) {
                     fs.unlinkSync(mediaFile);
                     notify(track);
                 });
-            })).then(resolve).catch(reject);
+            })).then(() => {
+                fs.rmdirSync(path.join(__dirname, 'tmp'));
+                resolve();
+            }).catch(reject);
         });
     });
 }
