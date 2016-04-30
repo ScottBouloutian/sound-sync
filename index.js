@@ -67,6 +67,24 @@ function getFavorites(id) {
     });
 }
 
+function getPlaylists(id) {
+    const options = {
+        url: endpoint + '/users/' + id + '/playlists',
+        qs: {
+            client_id: config.clientID
+        }
+    };
+    return Q.Promise((resolve, reject) => {
+        request.get(options, (error, response, body) => {
+            if(error) {
+                reject(error);
+            } else {
+                resolve(JSON.parse(body));
+            }
+        });
+    });
+}
+
 function downloadTrack(track, file) {
     const streamURL = track.stream_url;
     const options = {
@@ -168,11 +186,23 @@ function syncSounds(n) {
         config.accessToken = token;
         return getMe();
     }).then(me => {
-        return getFavorites(me.id);
-    }).then(favorites => {
-        const tracks = favorites.filter(favorite => {
-            return favorite.kind === 'track';
-        }).slice(0, n || favorites.length);
+        return Q.all([
+            getFavorites(me.id),
+            getPlaylists(me.id)
+        ]).then(results => {
+            var favorites = results[0];
+            var playlists = results[1];
+
+            return playlists.map(function(playlist) {
+                return playlist.tracks;
+            }).reduce(function(array, next) {
+                return array.concat(next);
+            }, favorites);
+        });
+    }).then(myTracks => {
+        const tracks = myTracks.filter(myTrack => {
+            return myTrack.kind === 'track';
+        }).slice(0, n || myTracks.length);
         return filterExistingTracks(tracks);
     }).then(newTracks => {
         return Q.Promise((resolve, reject, notify) => {
