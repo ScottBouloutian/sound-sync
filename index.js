@@ -188,15 +188,6 @@ class SoundSync {
     }
 
     sync(n) {
-        // Create a temporary directory for working with files
-        try {
-          fs.mkdirSync(path.join(__dirname, 'tmp'));
-        } catch(e) {
-          if ( e.code !== 'EEXIST' ) {
-              throw e;
-          }
-        }
-
         return _(this).getAccessToken().then(token => {
             return _(this).getMe(token);
         }).then(me => {
@@ -221,8 +212,8 @@ class SoundSync {
         }).then(newTracks => {
             return Q.Promise((resolve, reject, notify) => {
                 Q.all(newTracks.map(track => {
-                    const mediaFile = path.join(__dirname, 'tmp', track.id + '.mp3');
-                    const imageFile = path.join(__dirname, 'tmp', track.id + '.jpg');
+                    const mediaFile = path.join(_(this).config.workingDir, track.id + '.mp3');
+                    const imageFile = path.join(_(this).config.workingDir, track.id + '.jpg');
 
                     return Q.all([
                         _(this).downloadArtwork(track, imageFile),
@@ -237,7 +228,6 @@ class SoundSync {
                         notify(track);
                     });
                 })).then(() => {
-                    fs.rmdirSync(path.join(__dirname, 'tmp'));
                     resolve();
                 }).catch(reject);
             });
