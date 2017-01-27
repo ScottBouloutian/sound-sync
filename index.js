@@ -130,15 +130,15 @@ class Private {
     }
 
     saveTrack(track, file) {
-        var name = track.title.replace('/', '-');
-        var params = {
+        const name = track.title.replace(/\//g, '-');
+        const params = {
             localFile: file,
             s3Params: {
                 Bucket: this.config.aws.bucket,
                 Key: `soundcloud/${name}.mp3`
             }
         };
-        var uploader = this.s3Client.uploadFile(params);
+        const uploader = this.s3Client.uploadFile(params);
         return Q.Promise((resolve, reject) => {
             uploader.on('error', function(error) {
                 reject(error);
@@ -166,7 +166,7 @@ class Private {
             lister.once('end', () => {
                 resolve(tracks.filter(track => {
                     return s3Data.every(data => {
-                        var name = track.title.replace('/', '-');
+                        const name = track.title.replace(/\//g, '-');
                         return (data.Key.indexOf(name) === -1);
                     });
                 }));
@@ -195,8 +195,8 @@ class SoundSync {
                 _(this).getFavorites(me.id),
                 _(this).getPlaylists(me.id)
             ]).then(results => {
-                var favorites = results[0];
-                var playlists = results[1];
+                const favorites = results[0];
+                const playlists = results[1];
 
                 return playlists.map(function(playlist) {
                     return playlist.tracks;
