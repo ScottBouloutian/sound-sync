@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>/usr/local/bin</string>
+	</dict>
+	<key>Label</key>
+	<string>com.bouloutian.soundsync</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>osascript</string>
+		<string>/Users/scott/Documents/sound-sync/scripts/sync_songs.scpt</string>
+	</array>
+	<key>RunAtLoad</key>
+	<false/>
+	<key>StandardErrorPath</key>
+	<string>/Users/scott/Documents/sound-sync/scripts/com.bouloutian.soundsync.err</string>
+	<key>StandardOutPath</key>
+	<string>/Users/scott/Documents/sound-sync/scripts/com.bouloutian.soundsync.out</string>
+	<key>StartCalendarInterval</key>
+	<array>
+		<dict>
+			<key>Hour</key>
+			<integer>9</integer>
+			<key>Minute</key>
+			<integer>0</integer>
+		</dict>
+	</array>
+</dict>
+</plist>
