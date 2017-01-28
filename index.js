@@ -3,7 +3,7 @@
 const request = require('request');
 const fs = require('fs');
 const SoundCloud = require('soundcloud-nodejs-api-wrapper');
-const Q = require('q');
+const Promise = require('bluebird');
 const nodeId3 = require('node-id3');
 const s3 = require('s3');
 const path = require('path');
@@ -20,7 +20,7 @@ class Private {
           password: this.config.password
         });
         const client = soundCloud.client();
-        return Q.Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             client.exchange_token((error, result, arg, body) => {
                 if(error) {
                     reject(error);
@@ -38,7 +38,7 @@ class Private {
                 oauth_token: token
             }
         };
-        return Q.Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             request.get(options, (error, response, body) => {
                 if(error) {
                     reject(error);
@@ -49,22 +49,33 @@ class Private {
         });
     }
 
-    getFavorites(id) {
+    paginatedRequest(url, collection) {
         const options = {
-            url: endpoint + `/users/${id}/favorites`,
-            qs: {
-                client_id: this.config.clientID
-            }
+            url: url,
+            json: true
         };
-        return Q.Promise((resolve, reject) => {
+        if (collection.length === 0) {
+            options.qs = {
+                client_id: this.config.clientID,
+                linked_partitioning: true
+            }
+        }
+        return new Promise((resolve, reject) => {
             request.get(options, (error, response, body) => {
                 if(error) {
                     reject(error);
                 } else {
-                    resolve(JSON.parse(body));
+                    const result = ('next_href' in body) ?
+                        this.paginatedRequest(body.next_href, collection.concat(body.collection)) :
+                        collection;
+                    resolve(result);
                 }
             });
         });
+    }
+
+    getFavorites(id) {
+        return this.paginatedRequest(`${endpoint}/users/${id}/favorites`, []);
     }
 
     getPlaylists(id) {
@@ -74,7 +85,7 @@ class Private {
                 client_id: this.config.clientID
             }
         };
-        return Q.Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             request.get(options, (error, response, body) => {
                 if(error) {
                     reject(error);
@@ -93,7 +104,7 @@ class Private {
                 client_id: this.config.clientID
             }
         };
-        return Q.Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             const writeStream = fs.createWriteStream(file);
             request.get(options).pipe(writeStream).on('close', () => {
                 resolve(file);
@@ -104,11 +115,11 @@ class Private {
     }
 
     downloadArtwork(track, file) {
-        const thumb = track.artwork_url;
+        const thumb = track.artwork_url || track.user.avatar_url;
         const options = {
-            url: (thumb) ? thumb.replace('-large', '-t500x500') : null,
+            url: thumb.replace('-large', '-t500x500')
         };
-        return Q.Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             const writeStream = fs.createWriteStream(file);
             request.get(options).pipe(writeStream).on('close', () => {
                 resolve(file);
@@ -139,7 +150,7 @@ class Private {
             }
         };
         const uploader = this.s3Client.uploadFile(params);
-        return Q.Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             uploader.on('error', function(error) {
                 reject(error);
             });
@@ -150,7 +161,7 @@ class Private {
     }
 
     filterExistingTracks(tracks) {
-        return Q.Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             const params = {
                 s3Params: {
                     Bucket: this.config.aws.bucket,
@@ -191,7 +202,7 @@ class SoundSync {
         return _(this).getAccessToken().then(token => {
             return _(this).getMe(token);
         }).then(me => {
-            return Q.all([
+            return Promise.all([
                 _(this).getFavorites(me.id),
                 _(this).getPlaylists(me.id)
             ]).then(results => {
@@ -206,16 +217,16 @@ class SoundSync {
             });
         }).then(myTracks => {
             const tracks = myTracks.filter(myTrack => {
-                return myTrack.kind === 'track';
+                return (myTrack.kind === 'track' && 'stream_url' in myTrack);
             }).slice(0, n || myTracks.length);
             return _(this).filterExistingTracks(tracks);
         }).then(newTracks => {
-            return Q.Promise((resolve, reject, notify) => {
-                Q.all(newTracks.map(track => {
+            return new Promise((resolve, reject) => {
+                Promise.map(newTracks, track => {
                     const mediaFile = path.join(_(this).config.workingDir, track.id + '.mp3');
                     const imageFile = path.join(_(this).config.workingDir, track.id + '.jpg');
 
-                    return Q.all([
+                    return Promise.all([
                         _(this).downloadArtwork(track, imageFile),
                         _(this).downloadTrack(track, mediaFile)
                     ]).then(() => {
@@ -225,9 +236,9 @@ class SoundSync {
                         return _(this).saveTrack(track, mediaFile);
                     }).then(() => {
                         fs.unlinkSync(mediaFile);
-                        notify(track);
-                    });
-                })).then(() => {
+                        console.log(`[FINISHED] ${track.title}`);
+                    }).catch(reject);
+                }, { concurrency: 20 }).then(() => {
                     resolve();
                 }).catch(reject);
             });
