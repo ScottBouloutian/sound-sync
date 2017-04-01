@@ -1,0 +1,14 @@
+{
+    "extends": ["airbnb-base", "plugin:node/recommended"],
+    "plugins": [
+        "import",
+        "node"
+    ],
+    "env": {
+        "node": true
+    },
+    "rules": {
+        "indent": ["error", 4],
+        "no-console": "off"
+    }
+}

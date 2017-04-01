@@ -3,8 +3,12 @@
   "version": "1.1.0",
   "description": "Downloads your liked tracks on SoundCloud",
   "main": "index.js",
+  "engines": {
+    "node": "6.10.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "sh scripts/lambda-build.sh",
+    "lint": "eslint **/*.js"
   },
   "keywords": [
     "soundcloud",
@@ -13,15 +17,17 @@
   "author": "Scott Bouloutian",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.36.0",
     "bluebird": "^3.4.7",
     "node-id3": "0.0.4",
-    "private": "^0.1.6",
-    "q": "^1.4.1",
     "request": "^2.67.0",
     "s3": "^4.4.0",
     "soundcloud-nodejs-api-wrapper": "^0.2.3"
   },
-  "peerDependencies": {
-    "jshint": "2.9.1-rc1"
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb-base": "^11.1.2",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-node": "^4.2.2"
   }
 }
