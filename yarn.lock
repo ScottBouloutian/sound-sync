@@ -912,9 +912,9 @@ oauth-sign@~0.8.1:
   version "0.8.2"
   resolved "https://registry.yarnpkg.com/oauth-sign/-/oauth-sign-0.8.2.tgz#46a6ab7f0aead8deae9ec0565780b7d4efeb9d43"
 
-oauth@0.9.12:
-  version "0.9.12"
-  resolved "https://registry.yarnpkg.com/oauth/-/oauth-0.9.12.tgz#77bbb77cc5d638fe9b1d111b33c0b2f90030e89c"
+oauth@0.9.14:
+  version "0.9.14"
+  resolved "https://registry.yarnpkg.com/oauth/-/oauth-0.9.14.tgz#c5748883a40b53de30ade9cabf2100414b8a0971"
 
 object-assign@^4.0.1, object-assign@^4.1.0:
   version "4.1.1"
@@ -1021,10 +1021,6 @@ punycode@^1.4.1:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-1.4.1.tgz#c0d5a63b2718800ad8e1eb0fa5269c84dd41845e"
 
-q@^1.4.1:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/q/-/q-1.5.0.tgz#dd01bac9d06d30e6f219aecb8253ee9ebdc308f1"
-
 qs@~6.4.0:
   version "6.4.0"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.4.0.tgz#13e26d28ad6b0ffaa91312cd3bf708ed351e7233"
@@ -1059,7 +1055,7 @@ rechoir@^0.6.2:
   dependencies:
     resolve "^1.1.6"
 
-request@^2.67.0:
+request@^2.81.0:
   version "2.81.0"
   resolved "https://registry.yarnpkg.com/request/-/request-2.81.0.tgz#c6928946a0e06c5f8d6f8a9333469ffda46298a0"
   dependencies:
@@ -1172,12 +1168,12 @@ sntp@1.x.x:
   dependencies:
     hoek "2.x.x"
 
-soundcloud-nodejs-api-wrapper@^0.2.3:
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/soundcloud-nodejs-api-wrapper/-/soundcloud-nodejs-api-wrapper-0.2.3.tgz#3901ae08dabdad043f0ea0b49c136c5fde8b31c1"
+soundcloud-nodejs-api-wrapper@^0.3.2:
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/soundcloud-nodejs-api-wrapper/-/soundcloud-nodejs-api-wrapper-0.3.2.tgz#3a01b4fcc1edcea25bed7af7e067e6551baa79b8"
   dependencies:
     merge "1.2.0"
-    oauth "0.9.12"
+    oauth "0.9.14"
     url "0.10.2"
 
 sprintf-js@~1.0.2:
@@ -1316,13 +1312,9 @@ util-deprecate@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
 
-uuid@3.0.0:
+uuid@3.0.0, uuid@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.0.0.tgz#6728fc0459c450d796a99c31837569bdf672d728"
-
-uuid@^3.0.0:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.0.1.tgz#6544bba2dfda8c1cf17e629a3a305e2bb1fee6c1"
 
 verror@1.3.6:
   version "1.3.6"

@@ -3,16 +3,15 @@ const fs = require('fs');
 const SoundCloud = require('soundcloud-nodejs-api-wrapper');
 const Promise = require('bluebird');
 const nodeId3 = require('node-id3');
-const s3 = require('s3');
 const path = require('path');
 const aws = require('aws-sdk');
 
-const s3Client = s3.createClient({
-    s3Client: new aws.S3({ region: 'us-east-1' }),
-});
+const s3 = new aws.S3({ region: 'us-east-1' });
 const endpoint = 'https://api.soundcloud.com';
 const clientId = process.env.SOUNDCLOUD_CLIENT_ID;
 const bucket = process.env.SOUND_SYNC_BUCKET;
+const listObjects = Promise.promisify(s3.listObjectsV2, { context: s3 });
+const upload = Promise.promisify(s3.upload, { context: s3 });
 
 function getAccessToken() {
     const soundCloud = new SoundCloud({
@@ -132,43 +131,37 @@ function writeMetadata(track, file, image) {
 
 function saveTrack(track, file) {
     const name = track.title.replace(/\//g, '-');
-    const params = {
-        localFile: file,
-        s3Params: {
-            Bucket: bucket,
-            Key: `sound-sync/${name}.mp3`,
-        },
-    };
-    const uploader = s3Client.uploadFile(params);
-    return new Promise((resolve, reject) => {
-        uploader.on('error', error => reject(error));
-        uploader.on('end', () => resolve());
+    const stream = fs.createReadStream(file);
+    return upload({
+        Bucket: bucket,
+        Key: `sound-sync/${name}.mp3`,
+        Body: stream,
+    });
+}
+
+// Lists all music files on s3
+function s3ListObjects(token, collection = []) {
+    return listObjects({
+        Bucket: bucket,
+        Prefix: 'sound-sync/',
+        ContinuationToken: token,
+    }).then(({ IsTruncated, Contents, NextContinuationToken }) => {
+        const contents = collection.concat(Contents);
+        return IsTruncated ?
+            s3ListObjects(NextContinuationToken, contents) :
+            contents;
     });
 }
 
 function filterExistingTracks(tracks) {
-    return new Promise((resolve, reject) => {
-        const params = {
-            s3Params: {
-                Bucket: bucket,
-                Prefix: 'sound-sync/',
-            },
-        };
-        const lister = s3Client.listObjects(params);
-        let s3Data = [];
-        lister.on('data', (data) => {
-            s3Data = s3Data.concat(data.Contents);
-        });
-        lister.once('error', reject);
-        lister.once('end', () => (
-            resolve(tracks.filter(track => (
-                s3Data.every((data) => {
-                    const name = track.title.replace(/\//g, '-');
-                    return (data.Key.indexOf(name) === -1);
-                })
-            )))
-        ));
-    });
+    return s3ListObjects().then(objects => (
+        tracks.filter(track => (
+            objects.every((data) => {
+                const name = track.title.replace(/\//g, '-');
+                return (data.Key.indexOf(name) === -1);
+            })
+        ))
+    ));
 }
 
 function sync(n) {
@@ -182,7 +175,6 @@ function sync(n) {
         .then((results) => {
             const favorites = results[0];
             const playlists = results[1];
-
             return playlists
             .map(playlist => playlist.tracks)
             .reduce((array, next) => array.concat(next), favorites);
@@ -192,10 +184,12 @@ function sync(n) {
         const tracks = myTracks.filter(myTrack => (
             myTrack.kind === 'track' && ('stream_url' in myTrack)
         )).slice(0, n || myTracks.length);
+        console.log(`There are ${tracks.length} tracks on SoundCloud`);
         return filterExistingTracks(tracks);
     })
-    .then(newTracks => (
-        new Promise((resolve, reject) => {
+    .then((newTracks) => {
+        console.log(`Downloading ${newTracks.length} new tracks`);
+        return new Promise((resolve, reject) => {
             Promise.map(newTracks, (track) => {
                 const mediaFile = path.join(`/tmp/${track.id}.mp3`);
                 const imageFile = path.join(`/tmp/${track.id}.jpg`);
@@ -214,11 +208,13 @@ function sync(n) {
                     console.log(`[FINISHED] ${track.title}`);
                 })
                 .catch(reject);
-            }, { concurrency: 20 }).then(() => {
+            }, { concurrency: 5 }).then(() => {
                 resolve();
             }).catch(reject);
-        })
-    ));
+        });
+    })
+    .then(() => console.log('All done'))
+    .catch(error => console.error(error));
 }
 
 module.exports = { sync };
