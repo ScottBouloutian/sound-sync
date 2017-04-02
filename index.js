@@ -64,9 +64,10 @@ function paginatedRequest(url, collection) {
             if (error) {
                 reject(error);
             } else {
+                const objects = collection.concat(body.collection);
                 const result = ('next_href' in body) ?
-                    paginatedRequest(body.next_href, collection.concat(body.collection)) :
-                    collection;
+                    paginatedRequest(body.next_href, objects) :
+                    objects;
                 resolve(result);
             }
         });
@@ -164,7 +165,7 @@ function filterExistingTracks(tracks) {
     ));
 }
 
-function sync(n) {
+function sync() {
     return getAccessToken()
     .then(token => getMe(token))
     .then(me => (
@@ -183,7 +184,7 @@ function sync(n) {
     .then((myTracks) => {
         const tracks = myTracks.filter(myTrack => (
             myTrack.kind === 'track' && ('stream_url' in myTrack)
-        )).slice(0, n || myTracks.length);
+        ));
         console.log(`There are ${tracks.length} tracks on SoundCloud`);
         return filterExistingTracks(tracks);
     })
