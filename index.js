@@ -61,8 +61,9 @@ function paginatedRequest(url, collection) {
     }
     return new Promise((resolve, reject) => {
         request.get(options, (error, response, body) => {
-            if (error) {
-                reject(error);
+            const { statusCode } = response;
+            if (error || statusCode !== 200) {
+                reject(error || `code ${statusCode}`);
             } else {
                 const objects = collection.concat(body.collection);
                 const result = ('next_href' in body) ?
