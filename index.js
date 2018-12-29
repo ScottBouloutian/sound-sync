@@ -4,7 +4,7 @@ const Promise = require('bluebird');
 const nodeId3 = require('node-id3');
 const path = require('path');
 const aws = require('aws-sdk');
-const SoundCloud = require('.//src/SoundCloud');
+const SoundCloud = require('./src/SoundCloud');
 
 const s3 = new aws.S3({ region: 'us-east-1' });
 const bucket = process.env.SOUND_SYNC_BUCKET;

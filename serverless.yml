@@ -3,24 +3,24 @@ provider:
     name: aws
     runtime: nodejs8.10
 functions:
-    environment:
-        SOUND_SYNC_BUCKET: ${self:custom.bucket.${self:provider.stage}}
-        SOUNDCLOUD_CLIENT_ID: ${self:custom.clientId.${self:provider.stage}}
-        SOUNDCLOUD_CLIENT_SECRET: ${self:custom.clientSecret.${self:provider.stage}}
-        SOUNDCLOUD_USERNAME: ${self:custom.username.${self:provider.stage}}
-        SOUNDCLOUD_PASSWORD: ${self:custom.password.${self:provider.stage}}
     index:
         handler: index.sync
+        environment:
+            SOUND_SYNC_BUCKET: ${self:custom.bucket.${self:provider.stage}}
+            SOUNDCLOUD_CLIENT_ID: ${self:custom.clientId.${self:provider.stage}}
+            SOUNDCLOUD_CLIENT_SECRET: ${self:custom.clientSecret.${self:provider.stage}}
+            SOUNDCLOUD_USERNAME: ${self:custom.username.${self:provider.stage}}
+            SOUNDCLOUD_PASSWORD: ${self:custom.password.${self:provider.stage}}
         events:
             - schedule: rate(1 hour)
 custom:
     bucket:
-        dev: ${ssm:/sound-sync/dev/bucket}
+        dev: ${ssm:/sound-sync/dev/bucket~true}
     clientId:
-        dev: ${ssm:/sound-sync/dev/soundcloud-client-id}
+        dev: ${ssm:/sound-sync/dev/soundcloud-client-id~true}
     clientSecret:
-        dev: ${ssm:/sound-sync/dev/soundcloud-client-secret}
+        dev: ${ssm:/sound-sync/dev/soundcloud-client-secret~true}
     username:
-        dev: ${ssm:/sound-sync/dev/soundcloud-username}
+        dev: ${ssm:/sound-sync/dev/soundcloud-username~true}
     password:
-        dev: ${ssm:/sound-sync/dev/soundcloud-password}
+        dev: ${ssm:/sound-sync/dev/soundcloud-password~true}
