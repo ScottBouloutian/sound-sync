@@ -2,6 +2,7 @@ service: sound-sync
 provider:
     name: aws
     runtime: nodejs8.10
+    timeout: 600
 functions:
     index:
         handler: index.sync
@@ -13,14 +14,23 @@ functions:
             SOUNDCLOUD_PASSWORD: ${self:custom.password.${self:provider.stage}}
         events:
             - schedule: rate(1 hour)
+            - enabled: ${self:custom.enabled.${self:provider.stage}}
 custom:
     bucket:
         dev: ${ssm:/sound-sync/dev/bucket~true}
+        prod: ${ssm:/sound-sync/dev/bucket~true}
     clientId:
         dev: ${ssm:/sound-sync/dev/soundcloud-client-id~true}
+        prod: ${ssm:/sound-sync/dev/soundcloud-client-id~true}
     clientSecret:
         dev: ${ssm:/sound-sync/dev/soundcloud-client-secret~true}
+        prod: ${ssm:/sound-sync/dev/soundcloud-client-secret~true}
     username:
         dev: ${ssm:/sound-sync/dev/soundcloud-username~true}
+        prod: ${ssm:/sound-sync/dev/soundcloud-username~true}
     password:
         dev: ${ssm:/sound-sync/dev/soundcloud-password~true}
+        prod: ${ssm:/sound-sync/dev/soundcloud-password~true}
+    enabled:
+        dev: false
+        prod: true
