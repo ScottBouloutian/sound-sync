@@ -15,4 +15,3 @@ jobs:
             script: yarn deploy --stage dev
             on:
               branch: develop
-
