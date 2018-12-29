@@ -7,9 +7,9 @@
     "node": "8.10.0"
   },
   "scripts": {
-    "build": "sh scripts/lambda-build.sh",
-    "lint": "eslint **/*.js",
-    "test": "tape src/*.test.js"
+    "lint": "eslint index.js src/**/*.js",
+    "test": "tape src/*.test.js",
+    "deploy": "serverless deploy"
   },
   "keywords": [
     "soundcloud",
@@ -28,6 +28,7 @@
     "eslint": "^5.11.1",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.14.0",
+    "serverless": "^1.35.1",
     "tape": "^4.9.1"
   }
 }
