@@ -4,11 +4,12 @@
   "description": "Downloads your liked tracks on SoundCloud",
   "main": "index.js",
   "engines": {
-    "node": "6.10.0"
+    "node": "8.10.0"
   },
   "scripts": {
     "build": "sh scripts/lambda-build.sh",
-    "lint": "eslint **/*.js"
+    "lint": "eslint **/*.js",
+    "test": "tape src/*.test.js"
   },
   "keywords": [
     "soundcloud",
@@ -24,9 +25,9 @@
     "soundcloud-nodejs-api-wrapper": "^0.3.2"
   },
   "devDependencies": {
-    "eslint": "^3.19.0",
-    "eslint-config-airbnb-base": "^11.1.2",
-    "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-node": "^4.2.2"
+    "eslint": "^5.11.1",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "tape": "^4.9.1"
   }
 }
