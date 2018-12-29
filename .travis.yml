@@ -14,6 +14,6 @@ jobs:
       script: yarn --production
       deploy:
         - provider: script
-          script: yarn deploy --stage dev
+          script: yarn --production && yarn deploy --stage dev
           on:
             branch: develop
