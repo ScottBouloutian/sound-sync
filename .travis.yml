@@ -15,5 +15,11 @@ jobs:
       deploy:
         - provider: script
           script: yarn deploy --stage dev
+          skip_cleanup: true
           on:
             branch: develop
+        - provider: script
+          script: yarn deploy --stage prod
+          skip_cleanup: true
+          on:
+            branch: master
