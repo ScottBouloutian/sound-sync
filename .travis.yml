@@ -11,7 +11,7 @@ jobs:
         - yarn lint
         - yarn test
     - stage: deploy
-      script: skip
+      script: yarn --production
       deploy:
         - provider: script
           script: yarn deploy --stage dev
