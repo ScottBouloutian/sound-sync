@@ -18,8 +18,8 @@ functions:
             - enabled: ${self:custom.enabled.${self:provider.stage}}
 custom:
     bucket:
-        dev: ${ssm:/sound-sync/dev/bucket~true}
-        prod: ${ssm:/sound-sync/dev/bucket~true}
+        dev: scottbouloutian-dev
+        prod: scottbouloutian
     clientId:
         dev: ${ssm:/sound-sync/dev/soundcloud-client-id~true}
         prod: ${ssm:/sound-sync/dev/soundcloud-client-id~true}
