@@ -2,7 +2,7 @@ service: sound-sync
 provider:
     name: aws
     runtime: nodejs8.10
-    timeout: 600
+    timeout: ${self:custom.timeout.${self:provider.stage}}
 functions:
     index:
         handler: index.sync
@@ -12,6 +12,7 @@ functions:
             SOUNDCLOUD_CLIENT_SECRET: ${self:custom.clientSecret.${self:provider.stage}}
             SOUNDCLOUD_USERNAME: ${self:custom.username.${self:provider.stage}}
             SOUNDCLOUD_PASSWORD: ${self:custom.password.${self:provider.stage}}
+            MAX_SYNCED_TRACKS: ${self:custom.maxSyncedTracks.${self:provider.stage}}
         events:
             - schedule: rate(1 hour)
             - enabled: ${self:custom.enabled.${self:provider.stage}}
@@ -31,6 +32,12 @@ custom:
     password:
         dev: ${ssm:/sound-sync/dev/soundcloud-password~true}
         prod: ${ssm:/sound-sync/dev/soundcloud-password~true}
+    timeout:
+        dev: 300
+        prod: 1800
+    maxSyncedTracks:
+        dev: 1
+        prod: 100
     enabled:
         dev: false
         prod: true

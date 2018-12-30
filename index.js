@@ -4,11 +4,13 @@ const Promise = require('bluebird');
 const nodeId3 = require('node-id3');
 const path = require('path');
 const aws = require('aws-sdk');
+const _ = require('lodash/fp');
 const SoundCloud = require('./src/SoundCloud');
 const Sanitizer = require('./src/Sanitizer');
 
 const s3 = new aws.S3({ region: 'us-east-1' });
 const bucket = process.env.SOUND_SYNC_BUCKET;
+const maxSyncedTracks = process.env.MAX_SYNCED_TRACKS;
 const listObjects = Promise.promisify(s3.listObjectsV2, { context: s3 });
 const upload = Promise.promisify(s3.upload, { context: s3 });
 
@@ -60,12 +62,15 @@ function s3ListObjects(token, collection = []) {
 
 function filterExistingTracks(tracks) {
     return s3ListObjects().then(objects => (
-        tracks.filter(track => (
-            objects.every((data) => {
-                const name = Sanitizer.getFilename(track);
-                return (data.Key.indexOf(name) === -1);
-            })
-        ))
+        _.flow(
+            _.filter(track => (
+                _.every((data) => {
+                    const name = Sanitizer.getFilename(track);
+                    return (data.Key.indexOf(name) === -1);
+                })(objects)
+            )),
+            _.take(maxSyncedTracks),
+        )(tracks)
     ));
 }
 
