@@ -9,7 +9,7 @@
   "scripts": {
     "lint": "eslint index.js src/**/*.js",
     "test": "tape src/*.test.js",
-    "deploy": "serverless deploy"
+    "deploy": "serverless deploy --conceal"
   },
   "keywords": [
     "soundcloud",
