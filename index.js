@@ -5,6 +5,7 @@ const nodeId3 = require('node-id3');
 const path = require('path');
 const aws = require('aws-sdk');
 const SoundCloud = require('./src/SoundCloud');
+const Sanitizer = require('./src/Sanitizer');
 
 const s3 = new aws.S3({ region: 'us-east-1' });
 const bucket = process.env.SOUND_SYNC_BUCKET;
@@ -34,7 +35,7 @@ function writeMetadata(track, file, image) {
 }
 
 function saveTrack(track, file) {
-    const name = track.title.replace(/\//g, '-');
+    const name = Sanitizer.getFilename(track);
     const stream = fs.createReadStream(file);
     return upload({
         Bucket: bucket,
@@ -61,7 +62,7 @@ function filterExistingTracks(tracks) {
     return s3ListObjects().then(objects => (
         tracks.filter(track => (
             objects.every((data) => {
-                const name = track.title.replace(/\//g, '-');
+                const name = Sanitizer.getFilename(track);
                 return (data.Key.indexOf(name) === -1);
             })
         ))
