@@ -20,7 +20,7 @@
   "dependencies": {
     "aws-sdk": "^2.36.0",
     "bluebird": "^3.4.7",
-    "node-id3": "0.0.4",
+    "node-id3": "^0.1.7",
     "request": "^2.81.0",
     "soundcloud-nodejs-api-wrapper": "^0.3.2"
   },
