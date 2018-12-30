@@ -27,7 +27,8 @@ function downloadArtwork(track, file) {
 
 function writeMetadata(track, file, image) {
     const tags = {
-        artist: track.user.username,
+        album: track.user.username,
+        artist: track.user.full_name,
         title: track.title,
         genre: track.genre,
         year: String(track.release_year || new Date(track.created_at).getFullYear()),
