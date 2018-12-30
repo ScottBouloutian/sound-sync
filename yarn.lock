@@ -1561,7 +1561,7 @@ iconv-lite@0.4.23:
   dependencies:
     safer-buffer ">= 2.1.2 < 3"
 
-iconv-lite@^0.4.24, iconv-lite@~0.4.13:
+iconv-lite@^0.4.15, iconv-lite@^0.4.24, iconv-lite@~0.4.13:
   version "0.4.24"
   resolved "https://registry.yarnpkg.com/iconv-lite/-/iconv-lite-0.4.24.tgz#2022b4b25fbddc21d2f524974a474aafe733908b"
   dependencies:
@@ -2188,9 +2188,11 @@ node-fetch@^1.0.1, node-fetch@^1.6.0:
     encoding "^0.1.11"
     is-stream "^1.0.1"
 
-node-id3@0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/node-id3/-/node-id3-0.0.4.tgz#c703c7d60e8f5e2527724afbd2fac545027e1c26"
+node-id3@^0.1.7:
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/node-id3/-/node-id3-0.1.7.tgz#af5bdfeb32edd32fd42426f5754f64053737e0e6"
+  dependencies:
+    iconv-lite "^0.4.15"
 
 normalize-package-data@^2.3.2:
   version "2.4.0"
