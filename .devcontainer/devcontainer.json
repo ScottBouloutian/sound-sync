@@ -1,0 +1,13 @@
+{
+	"name": "sound-sync",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "dev",
+	"workspaceFolder": "/workspace",
+	"settings": { 
+		"terminal.integrated.shell.linux": "/bin/zsh"
+	},
+	"postCreateCommand": "yarn",
+	"extensions": [
+		"dbaeumer.vscode-eslint"
+	]
+}
