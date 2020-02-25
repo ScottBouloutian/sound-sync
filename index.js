@@ -115,8 +115,12 @@ function sync() {
         }).catch(reject);
       });
     })
-    .then(() => logger.info('All done'))
-    .catch((error) => logger.error(error));
+    .then(() => {
+      logger.info('All done');
+    })
+    .catch((error) => {
+      logger.error(error);
+    });
 }
 
 module.exports = { sync };

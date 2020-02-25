@@ -1,43 +1,61 @@
 service: sound-sync
 provider:
-    name: aws
-    runtime: nodejs12.x
-    timeout: ${self:custom.timeout.${self:provider.stage}}
+  name: aws
+  runtime: nodejs12.x
+  timeout: ${self:custom.timeout.${self:provider.stage}}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:ListBucket
+      Resource:
+        Fn::Join:
+          - ''
+          - - 'arn:aws:s3:::'
+            - ${self:custom.bucket.${self:provider.stage}}
+    - Effect: 'Allow'
+      Action:
+        - 's3:PutObject'
+      Resource:
+        Fn::Join:
+          - ''
+          - - 'arn:aws:s3:::'
+            - ${self:custom.bucket.${self:provider.stage}}
+            - '/*'
 functions:
-    index:
-        handler: index.sync
-        environment:
-            SOUND_SYNC_BUCKET: ${self:custom.bucket.${self:provider.stage}}
-            SOUNDCLOUD_CLIENT_ID: ${self:custom.clientId.${self:provider.stage}}
-            SOUNDCLOUD_CLIENT_SECRET: ${self:custom.clientSecret.${self:provider.stage}}
-            SOUNDCLOUD_USERNAME: ${self:custom.username.${self:provider.stage}}
-            SOUNDCLOUD_PASSWORD: ${self:custom.password.${self:provider.stage}}
-            MAX_SYNCED_TRACKS: ${self:custom.maxSyncedTracks.${self:provider.stage}}
-        events:
-            - schedule: rate(1 hour)
-            - enabled: ${self:custom.enabled.${self:provider.stage}}
+  index:
+    handler: index.sync
+    environment:
+      SOUND_SYNC_BUCKET: ${self:custom.bucket.${self:provider.stage}}
+      SOUNDCLOUD_CLIENT_ID: ${self:custom.clientId.${self:provider.stage}}
+      SOUNDCLOUD_CLIENT_SECRET: ${self:custom.clientSecret.${self:provider.stage}}
+      SOUNDCLOUD_USERNAME: ${self:custom.username.${self:provider.stage}}
+      SOUNDCLOUD_PASSWORD: ${self:custom.password.${self:provider.stage}}
+      MAX_SYNCED_TRACKS: ${self:custom.maxSyncedTracks.${self:provider.stage}}
+    events:
+      - schedule: rate(1 hour)
+      - enabled: ${self:custom.enabled.${self:provider.stage}}
 custom:
-    bucket:
-        dev: scottbouloutian-dev
-        prod: scottbouloutian
-    clientId:
-        dev: ${ssm:/sound-sync/dev/soundcloud-client-id~true}
-        prod: ${ssm:/sound-sync/dev/soundcloud-client-id~true}
-    clientSecret:
-        dev: ${ssm:/sound-sync/dev/soundcloud-client-secret~true}
-        prod: ${ssm:/sound-sync/dev/soundcloud-client-secret~true}
-    username:
-        dev: ${ssm:/sound-sync/dev/soundcloud-username~true}
-        prod: ${ssm:/sound-sync/dev/soundcloud-username~true}
-    password:
-        dev: ${ssm:/sound-sync/dev/soundcloud-password~true}
-        prod: ${ssm:/sound-sync/dev/soundcloud-password~true}
-    timeout:
-        dev: 300
-        prod: 1800
-    maxSyncedTracks:
-        dev: 1
-        prod: 100
-    enabled:
-        dev: false
-        prod: true
+  bucket:
+    dev: scottbouloutian-dev
+    prod: scottbouloutian
+  clientId:
+    dev: ${ssm:/sound-sync/dev/soundcloud-client-id~true}
+    prod: ${ssm:/sound-sync/dev/soundcloud-client-id~true}
+  clientSecret:
+    dev: ${ssm:/sound-sync/dev/soundcloud-client-secret~true}
+    prod: ${ssm:/sound-sync/dev/soundcloud-client-secret~true}
+  username:
+    dev: ${ssm:/sound-sync/dev/soundcloud-username~true}
+    prod: ${ssm:/sound-sync/dev/soundcloud-username~true}
+  password:
+    dev: ${ssm:/sound-sync/dev/soundcloud-password~true}
+    prod: ${ssm:/sound-sync/dev/soundcloud-password~true}
+  timeout:
+    dev: 300
+    prod: 1800
+  maxSyncedTracks:
+    dev: 1
+    prod: 100
+  enabled:
+    dev: false
+    prod: true
