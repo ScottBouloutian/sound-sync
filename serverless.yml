@@ -1,7 +1,7 @@
 service: sound-sync
 provider:
     name: aws
-    runtime: nodejs8.10
+    runtime: nodejs12.x
     timeout: ${self:custom.timeout.${self:provider.stage}}
 functions:
     index:
