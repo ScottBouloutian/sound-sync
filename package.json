@@ -18,7 +18,7 @@
     "aws-sdk": "^2.624.0",
     "bluebird": "^3.7.2",
     "emoji-regex": "^8.0.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "node-id3": "^0.1.13",
     "request": "^2.88.1",
     "soundcloud-nodejs-api-wrapper": "^0.3.2",
