@@ -15,7 +15,7 @@
   "author": "Scott Bouloutian",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.624.0",
+    "aws-sdk": "^2.814.0",
     "bluebird": "^3.7.2",
     "emoji-regex": "^8.0.0",
     "lodash": "^4.17.15",
